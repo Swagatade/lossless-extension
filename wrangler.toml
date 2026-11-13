@@ -1,0 +1,19 @@
+# Cloudflare Workers deployment.
+#   npm run deploy:cf            -> deploy
+#   npm run dev:cf               -> local dev on http://localhost:8787
+#   wrangler secret put QOBUZ_ID_SECRET   (required, one-time)
+name = "lossless-extension"
+main = "src/worker.ts"
+compatibility_date = "2025-09-01"
+# node:crypto (HMAC for signed track IDs) and Buffer need Node compat.
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[observability]
+enabled = true
+
+# Non-secret overrides (all optional - defaults live in src/config.ts).
+# [vars]
+# QOBUZ_PROVIDER = "multi"
+# CACHE_TTL_SECONDS = "300"
+# REQUEST_TIMEOUT_MS = "6000"

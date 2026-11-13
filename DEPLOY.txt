@@ -4,3 +4,7 @@ Env variables   : PORT=9000  (Catalyst ka default listen port)
                   NODE_ENV=production
                   QOBUZ_ID_SECRET=<koi lamba random secret>
 Koi npm install / build ki zaroorat nahi: dist/ already bana hua hai aur koi dependency nahi hai.
+
+Cloudflare Workers
+  npx wrangler secret put QOBUZ_ID_SECRET
+  npm run deploy:cf        (config: wrangler.toml, entry: src/worker.ts)

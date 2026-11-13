@@ -17,15 +17,18 @@ export interface Config {
   instableBaseUrl?: string;
 }
 
-const positiveInt = (name: string, fallback: number): number => {
-  const value = Number(process.env[name] ?? fallback);
+/** Environment variables: `process.env` on Node, the `env` binding on Workers. */
+export type Env = Record<string, string | undefined>;
+
+const positiveInt = (env: Env, name: string, fallback: number): number => {
+  const value = Number(env[name] ?? fallback);
   if (!Number.isInteger(value) || value <= 0)
     throw new Error(`${name} must be a positive integer`);
   return value;
 };
 
-export function loadConfig(): Config {
-  const provider = (process.env.QOBUZ_PROVIDER ?? "multi").toLowerCase();
+export function loadConfig(env: Env = {}): Config {
+  const provider = (env.QOBUZ_PROVIDER ?? "multi").toLowerCase();
   if (
     provider !== "stub" &&
     provider !== "http" &&
@@ -34,8 +37,8 @@ export function loadConfig(): Config {
   )
     throw new Error("QOBUZ_PROVIDER must be stub, http, qobuzdl, or multi");
   const apiBaseUrl =
-    process.env.QOBUZ_API_BASE_URL ??
-    process.env.QOBUZ_UPSTREAM_BASE_URL ??
+    env.QOBUZ_API_BASE_URL ??
+    env.QOBUZ_UPSTREAM_BASE_URL ??
     "https://qobuz-dll.foreyou.workers.dev";
   if (
     provider === "http" &&
@@ -46,32 +49,33 @@ export function loadConfig(): Config {
     );
   }
   return {
-    host: process.env.HOST ?? "0.0.0.0",
+    host: env.HOST ?? "0.0.0.0",
     port: positiveInt(
+      env,
       "PORT",
-      Number(process.env.X_ZOHO_CATALYST_LISTEN_PORT) ||
-        Number(process.env.SERVER_PORT) ||
+      Number(env.X_ZOHO_CATALYST_LISTEN_PORT) ||
+        Number(env.SERVER_PORT) ||
         3000,
     ),
-    requestTimeoutMs: positiveInt("REQUEST_TIMEOUT_MS", 6000),
-    upstreamRetries: positiveInt("UPSTREAM_RETRIES", 1),
-    cacheTtlMs: positiveInt("CACHE_TTL_SECONDS", 300) * 1000,
-    idSecret: process.env.QOBUZ_ID_SECRET ?? "qobuz-EchoMusic-id-secret-v1",
+    requestTimeoutMs: positiveInt(env, "REQUEST_TIMEOUT_MS", 6000),
+    upstreamRetries: positiveInt(env, "UPSTREAM_RETRIES", 1),
+    cacheTtlMs: positiveInt(env, "CACHE_TTL_SECONDS", 300) * 1000,
+    idSecret: env.QOBUZ_ID_SECRET ?? "qobuz-EchoMusic-id-secret-v1",
     provider,
     apiBaseUrl,
-    searchPath: process.env.QOBUZ_SEARCH_PATH,
-    streamPath: process.env.QOBUZ_STREAM_PATH,
-    apiToken: process.env.QOBUZ_API_TOKEN,
+    searchPath: env.QOBUZ_SEARCH_PATH,
+    streamPath: env.QOBUZ_STREAM_PATH,
+    apiToken: env.QOBUZ_API_TOKEN,
     lastBabeBaseUrl:
-      process.env.LASTBABE_BASE_URL ?? "https://lastbabe.velixir.run",
+      env.LASTBABE_BASE_URL ?? "https://lastbabe.velixir.run",
     monochromeBaseUrl:
-      process.env.MONOCHROME_BASE_URL ?? "https://tracks.monochrome.st",
+      env.MONOCHROME_BASE_URL ?? "https://tracks.monochrome.st",
     deezerBaseUrl:
-      process.env.DEEZER_BASE_URL ?? "https://dzr.tabs-vs-spaces.wtf",
+      env.DEEZER_BASE_URL ?? "https://dzr.tabs-vs-spaces.wtf",
     eljohnzcBaseUrl:
-      process.env.ELJOHNZC_BASE_URL ??
+      env.ELJOHNZC_BASE_URL ??
       "https://eljohnzc-addon.de.deplexo.com/4433c7caff7fd070309e",
     instableBaseUrl:
-      process.env.INSTABLE_BASE_URL ?? "https://instable.arcod.xyz",
+      env.INSTABLE_BASE_URL ?? "https://instable.arcod.xyz",
   };
 }

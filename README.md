@@ -14,7 +14,22 @@ Lossless Extension resolves lossless audio streams across multiple upstream prov
 
 ## Quick Setup
 
-### 1. Deploy to Vercel
+Pick one host: **Cloudflare Workers** (recommended, free tier works) or Vercel.
+
+### 1a. Deploy to Cloudflare Workers
+
+```bash
+npm install
+npx wrangler login
+npx wrangler secret put QOBUZ_ID_SECRET   # paste output of: openssl rand -hex 32
+npm run deploy:cf
+```
+
+Wrangler prints your URL (e.g. `https://lossless-extension.<account>.workers.dev`). Optional settings (`QOBUZ_PROVIDER`, `CACHE_TTL_SECONDS`, provider base URLs, ...) can go in the `[vars]` block of `wrangler.toml`. Test locally with `npm run dev:cf` (put `QOBUZ_ID_SECRET=...` in a `.dev.vars` file).
+
+You can also connect the GitHub repo in the Cloudflare dashboard (Workers & Pages → Create → Import a repository) with build command `npm install` and deploy command `npx wrangler deploy`.
+
+### 1b. Deploy to Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/EchoMusicApp/lossless-extension&project-name=lossless-extension&repository-name=lossless-extension&env=QOBUZ_ID_SECRET&envDescription=A%20long%20random%20secret%20used%20to%20sign%20track%20IDs.%20Generate%20one%20with%20openssl%20rand%20-hex%2032&envLink=https://github.com/EchoMusicApp/lossless-extension%23configuration)
 
@@ -28,7 +43,7 @@ All other provider settings include preconfigured defaults.
 
 ### 2. Copy Deployment URL
 
-From your Vercel project dashboard, copy the production deployment URL (e.g. `https://lossless-extension-xxxx.vercel.app`). Do not append `/search` or `/stream` paths.
+Copy your production URL (e.g. `https://lossless-extension.<account>.workers.dev` or `https://lossless-extension-xxxx.vercel.app`). Do not append `/search` or `/stream` paths.
 
 ### 3. Connect to Echo Music
 
@@ -76,14 +91,17 @@ Each route exposes standard addon endpoints:
 
 ## Local Development
 
-Requires Node.js 20 or higher.
+Requires Node.js 20 or higher. The request logic lives in `src/app.ts` (Web-standard `Request`/`Response`); `src/worker.ts` is the Cloudflare entry and `src/server.ts` the Node/Vercel adapter.
 
 ```bash
 # Install dependencies
 npm install
 
-# Start local dev server
+# Start local dev server (Node)
 npm run dev
+
+# Or run it in the Cloudflare Workers runtime
+npm run dev:cf
 
 # Run test suite and build
 npm test
